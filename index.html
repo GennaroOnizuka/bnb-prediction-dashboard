@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#07110f">
+    <title>BNB Prediction Bot Dashboard</title>
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <main class="app">
+      <section class="topbar">
+        <div class="title">
+          <h1>BNB Prediction</h1>
+          <p class="subtitle">Dashboard mobile per bet, claim, win rate e PnL on-chain.</p>
+        </div>
+        <div id="status" class="status-pill">Idle</div>
+      </section>
+
+      <section class="controls">
+        <input id="wallet" class="wallet-input" placeholder="Wallet BSC 0x..." autocomplete="off">
+        <select id="days" class="select" aria-label="Periodo">
+          <option value="1">1 giorno</option>
+          <option value="7">7 giorni</option>
+          <option value="14">14 giorni</option>
+          <option value="30">30 giorni</option>
+        </select>
+        <button id="connect" class="button secondary">MetaMask</button>
+        <button id="refresh" class="button">Aggiorna</button>
+      </section>
+
+      <div id="error" class="error"></div>
+
+      <section class="grid cards">
+        <article class="card">
+          <div class="card-label">Net PnL</div>
+          <div id="netPnl" class="card-value">--</div>
+        </article>
+        <article class="card">
+          <div class="card-label">Win rate</div>
+          <div id="winRate" class="card-value">--</div>
+        </article>
+        <article class="card">
+          <div class="card-label">Open</div>
+          <div id="openBets" class="card-value">--</div>
+        </article>
+        <article class="card">
+          <div class="card-label">Max loss streak</div>
+          <div id="lossStreak" class="card-value">--</div>
+        </article>
+        <article class="card">
+          <div class="card-label">Volume</div>
+          <div id="volume" class="card-value">--</div>
+        </article>
+      </section>
+
+      <section class="grid charts" style="margin-top: 14px;">
+        <article class="panel">
+          <h2>PnL Giornaliero</h2>
+          <canvas id="pnlChart"></canvas>
+        </article>
+        <article class="panel">
+          <h2>Esiti</h2>
+          <canvas id="outcomeChart"></canvas>
+        </article>
+      </section>
+
+      <section class="panel" style="margin-top: 14px;">
+        <h2>Ultimi trade</h2>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Ora</th>
+                <th>Epoch</th>
+                <th>Bet</th>
+                <th>Stato</th>
+                <th>Size</th>
+                <th>Net PnL</th>
+                <th>Gas</th>
+                <th>Risultato</th>
+                <th>Link</th>
+              </tr>
+            </thead>
+            <tbody id="tradesBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="panel" style="margin-top: 14px;">
+        <h2>Stato</h2>
+        <p id="lastUpdate" class="note">Nessun dato caricato.</p>
+        <p class="note">La dashboard legge solo dati pubblici da BSC. Non usa private key e non invia transazioni.</p>
+        <p class="note">Wallet: <span id="walletShort">--</span></p>
+      </section>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/ethers@6.13.5/dist/ethers.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+    <script src="./config.js"></script>
+    <script src="./app.js"></script>
+  </body>
+</html>
