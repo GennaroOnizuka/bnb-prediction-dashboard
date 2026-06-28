@@ -149,9 +149,19 @@ h2 {
   font-size: 17px;
 }
 
-canvas {
+.chart-box {
+  position: relative;
+  width: 100%;
+  height: 260px;
+  max-height: 260px;
+  overflow: hidden;
+}
+
+.chart-box canvas {
+  display: block;
   width: 100% !important;
-  min-height: 240px;
+  height: 260px !important;
+  max-height: 260px !important;
 }
 
 .trade-list {
@@ -255,6 +265,12 @@ a {
   .panel-head {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .chart-box,
+  .chart-box canvas {
+    height: 210px !important;
+    max-height: 210px !important;
   }
 
   .trade-row {

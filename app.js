@@ -90,6 +90,7 @@ function renderChart(snapshot) {
     options: {
       responsive: true,
       maintainAspectRatio: false,
+      resizeDelay: 150,
       plugins: {
         legend: { display: false },
         tooltip: { intersect: false, mode: "index" }
