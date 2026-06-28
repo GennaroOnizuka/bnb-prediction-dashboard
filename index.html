@@ -12,20 +12,19 @@
       <section class="topbar">
         <div class="title">
           <h1>BNB Prediction</h1>
-          <p class="subtitle">Dashboard mobile per bet, claim, win rate e PnL on-chain.</p>
+          <p class="subtitle">Profilo bot personale: bet, claim, win rate e PnL on-chain.</p>
         </div>
         <div id="status" class="status-pill">Idle</div>
       </section>
 
       <section class="controls">
-        <input id="wallet" class="wallet-input" placeholder="Wallet BSC 0x..." autocomplete="off">
+        <input id="wallet" type="hidden" autocomplete="off">
         <select id="days" class="select" aria-label="Periodo">
           <option value="1">1 giorno</option>
           <option value="7">7 giorni</option>
           <option value="14">14 giorni</option>
           <option value="30">30 giorni</option>
         </select>
-        <button id="connect" class="button secondary">MetaMask</button>
         <button id="refresh" class="button">Aggiorna</button>
       </section>
 
@@ -91,7 +90,7 @@
         <h2>Stato</h2>
         <p id="lastUpdate" class="note">Nessun dato caricato.</p>
         <p class="note">La dashboard legge solo dati pubblici da BSC. Non usa private key e non invia transazioni.</p>
-        <p class="note">Wallet: <span id="walletShort">--</span></p>
+        <p class="note">Profilo bot: <span id="walletShort">--</span></p>
       </section>
     </main>
 

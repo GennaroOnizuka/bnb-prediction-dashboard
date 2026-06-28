@@ -371,7 +371,7 @@ function renderTable(rows, bnbUsd) {
 async function refresh() {
   setError("");
   try {
-    const wallet = ethers.getAddress($("wallet").value.trim());
+    const wallet = ethers.getAddress(($("wallet").value || CONFIG.defaultWallet).trim());
     const days = Number($("days").value || CONFIG.defaultDays);
     localStorage.setItem("bnb-dashboard-wallet", wallet);
     setStatus("Sync...", "warn");
@@ -390,18 +390,9 @@ async function refresh() {
 }
 
 async function main() {
-  $("wallet").value = localStorage.getItem("bnb-dashboard-wallet") || CONFIG.defaultWallet || "";
+  $("wallet").value = CONFIG.defaultWallet || localStorage.getItem("bnb-dashboard-wallet") || "";
   $("days").value = String(CONFIG.defaultDays);
   $("refresh").addEventListener("click", refresh);
-  $("connect").addEventListener("click", async () => {
-    setError("");
-    try {
-      $("wallet").value = await connectWallet();
-      await refresh();
-    } catch (error) {
-      setError(error?.message || String(error));
-    }
-  });
   if ($("wallet").value) {
     await refresh();
   }
