@@ -401,19 +401,48 @@ function renderTable(rows, bnbUsd) {
   }
 }
 
+async function fetchStaticSnapshot() {
+  const res = await fetch(`${CONFIG.dataUrl}?t=${Date.now()}`, { cache: "no-store" });
+  if (!res.ok) {
+    throw new Error(`Snapshot non disponibile: HTTP ${res.status}. Aspetta il primo export AWS.`);
+  }
+  const payload = await res.json();
+  const rows = (payload.rows || []).map((row) => ({
+    epoch: String(row.epoch),
+    date: new Date(row.date_ms || payload.generated_ms || Date.now()),
+    direction: row.direction || "",
+    resultDirection: row.resultDirection || "",
+    status: row.status || "OPEN",
+    amountBnb: Number(row.amountBnb || 0),
+    payoutBnb: Number(row.payoutBnb || 0),
+    grossPnlBnb: Number(row.grossPnlBnb || 0),
+    gasBnb: Number(row.gasBnb || 0),
+    netPnlBnb: Number(row.netPnlBnb || 0),
+    txHash: row.txHash || "",
+    claimTxHash: row.claimTxHash || "",
+    lockPrice: row.lockPrice,
+    closePrice: row.closePrice
+  }));
+  return {
+    wallet: payload.wallet || CONFIG.defaultWallet,
+    generatedMs: payload.generated_ms,
+    bnbUsd: payload.bnbUsd || null,
+    rows,
+    summary: payload.summary || summarize(rows, payload.bnbUsd || null),
+    note: payload.pnlNote || ""
+  };
+}
+
 async function refresh() {
   setError("");
   try {
-    const wallet = ethers.getAddress(($("wallet").value || CONFIG.defaultWallet).trim());
-    const days = Number($("days").value || CONFIG.defaultDays);
-    localStorage.setItem("bnb-dashboard-wallet", wallet);
-    setStatus("Sync...", "warn");
-    const payload = await fetchOnchain(wallet, days);
-    const summary = summarize(payload.rows, payload.bnbUsd);
-    renderCards(summary, payload.bnbUsd, wallet);
-    renderCharts(summary, payload.bnbUsd);
+    setStatus("Carico dati", "warn");
+    const payload = await fetchStaticSnapshot();
+    renderCards(payload.summary, payload.bnbUsd, payload.wallet);
+    renderCharts(payload.summary, payload.bnbUsd);
     renderTable(payload.rows, payload.bnbUsd);
-    $("lastUpdate").textContent = `Ultimo refresh: ${new Date().toLocaleString()} | blocchi ${payload.fromBlock}-${payload.latestBlock} | BNB ${payload.bnbUsd ? `$${payload.bnbUsd.toFixed(2)}` : "USD n/d"}`;
+    const generated = payload.generatedMs ? new Date(payload.generatedMs).toLocaleString() : "n/d";
+    $("lastUpdate").textContent = `Ultimo export AWS: ${generated} | BNB ${payload.bnbUsd ? `$${payload.bnbUsd.toFixed(2)}` : "USD n/d"}${payload.note ? ` | ${payload.note}` : ""}`;
     setStatus("Online", "ok");
   } catch (error) {
     console.error(error);
@@ -424,7 +453,6 @@ async function refresh() {
 
 async function main() {
   $("wallet").value = CONFIG.defaultWallet || localStorage.getItem("bnb-dashboard-wallet") || "";
-  $("days").value = String(CONFIG.defaultDays);
   $("refresh").addEventListener("click", refresh);
   if ($("wallet").value) {
     await refresh();

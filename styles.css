@@ -78,7 +78,7 @@ select {
 
 .controls {
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: auto;
   gap: 10px;
   align-items: center;
   background: rgba(13, 26, 23, 0.86);
