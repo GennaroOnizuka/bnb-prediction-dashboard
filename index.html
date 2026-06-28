@@ -4,87 +4,55 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="theme-color" content="#07110f">
-    <title>BNB Prediction Bot Dashboard</title>
+    <title>Icarus Assets Management</title>
     <link rel="stylesheet" href="./styles.css">
   </head>
   <body>
     <main class="app">
-      <section class="topbar">
-        <div class="title">
-          <h1>BNB Prediction</h1>
-          <p class="subtitle">Profilo bot personale: bet, claim, win rate e PnL on-chain.</p>
+      <header class="header">
+        <div>
+          <p class="eyebrow">Live Bot Dashboard</p>
+          <h1>Icarus Assets Management</h1>
+          <p id="updatedAt" class="subtle">Caricamento dati...</p>
         </div>
-        <div id="status" class="status-pill">Idle</div>
-      </section>
-
-      <section class="controls">
-        <input id="wallet" type="hidden" autocomplete="off">
         <button id="refresh" class="button">Aggiorna</button>
-      </section>
+      </header>
 
       <div id="error" class="error"></div>
 
-      <section class="grid cards">
-        <article class="card">
-          <div class="card-label">Net PnL</div>
-          <div id="netPnl" class="card-value">--</div>
+      <section class="kpi-grid" aria-label="Metriche principali">
+        <article class="kpi primary">
+          <span>Net PnL</span>
+          <strong id="netPnl">--</strong>
         </article>
-        <article class="card">
-          <div class="card-label">Win rate</div>
-          <div id="winRate" class="card-value">--</div>
+        <article class="kpi">
+          <span>Win rate</span>
+          <strong id="winRate">--</strong>
         </article>
-        <article class="card">
-          <div class="card-label">Open</div>
-          <div id="openBets" class="card-value">--</div>
+        <article class="kpi">
+          <span>Trade chiusi</span>
+          <strong id="closedTrades">--</strong>
         </article>
-        <article class="card">
-          <div class="card-label">Max loss streak</div>
-          <div id="lossStreak" class="card-value">--</div>
-        </article>
-        <article class="card">
-          <div class="card-label">Volume</div>
-          <div id="volume" class="card-value">--</div>
+        <article class="kpi">
+          <span>Open</span>
+          <strong id="openBets">--</strong>
         </article>
       </section>
 
-      <section class="grid charts" style="margin-top: 14px;">
-        <article class="panel">
-          <h2>PnL Giornaliero</h2>
-          <canvas id="pnlChart"></canvas>
-        </article>
-        <article class="panel">
-          <h2>Esiti</h2>
-          <canvas id="outcomeChart"></canvas>
-        </article>
-      </section>
-
-      <section class="panel" style="margin-top: 14px;">
-        <h2>Ultimi trade</h2>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Ora</th>
-                <th>Epoch</th>
-                <th>Bet</th>
-                <th>Stato</th>
-                <th>Size</th>
-                <th>Net PnL</th>
-                <th>Gas</th>
-                <th>Risultato</th>
-                <th>Link</th>
-              </tr>
-            </thead>
-            <tbody id="tradesBody"></tbody>
-          </table>
+      <section class="panel">
+        <div class="panel-head">
+          <h2>PnL giornaliero</h2>
+          <span id="volume" class="metric-note">--</span>
         </div>
+        <canvas id="pnlChart"></canvas>
       </section>
 
-      <section class="panel" style="margin-top: 14px;">
-        <h2>Stato</h2>
-        <p id="lastUpdate" class="note">Nessun dato caricato.</p>
-        <p class="note">La dashboard legge solo dati pubblici da BSC. Non usa private key e non invia transazioni.</p>
-        <p class="note">Profilo bot: <span id="walletShort">--</span></p>
+      <section class="panel">
+        <div class="panel-head">
+          <h2>Ultimi 10 trade</h2>
+          <span id="lossStreak" class="metric-note">--</span>
+        </div>
+        <div id="tradeList" class="trade-list"></div>
       </section>
     </main>
 
