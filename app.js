@@ -71,7 +71,10 @@ async function createProvider() {
   let lastError;
   for (const url of CONFIG.rpcUrls) {
     try {
-      const provider = new ethers.JsonRpcProvider(url, CONFIG.chainId, { staticNetwork: true });
+      const provider = new ethers.JsonRpcProvider(url, CONFIG.chainId, {
+        staticNetwork: true,
+        batchMaxCount: 1
+      });
       await provider.getBlockNumber();
       return provider;
     } catch (error) {
@@ -88,6 +91,31 @@ async function connectWallet() {
   const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
   if (!accounts?.[0]) throw new Error("Nessun account MetaMask disponibile.");
   return ethers.getAddress(accounts[0]);
+}
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function isRateLimit(error) {
+  const text = String(error?.message || error?.shortMessage || error || "").toLowerCase();
+  return text.includes("rate limit") || text.includes("-32005") || text.includes("too many");
+}
+
+async function rpcWithRetry(fn, label, retries = 4) {
+  let lastError;
+  for (let attempt = 0; attempt <= retries; attempt += 1) {
+    try {
+      return await fn();
+    } catch (error) {
+      lastError = error;
+      if (!isRateLimit(error) || attempt === retries) break;
+      const waitMs = CONFIG.rpcRetryMs * Math.pow(1.7, attempt);
+      setStatus(`${label}: rate limit, retry ${attempt + 1}`, "warn");
+      await sleep(waitMs);
+    }
+  }
+  throw lastError;
 }
 
 async function fetchBnbUsd() {
@@ -107,9 +135,13 @@ async function getLogsChunked(provider, filter, fromBlock, toBlock) {
   const step = CONFIG.maxChunkBlocks;
   for (let start = fromBlock; start <= toBlock; start += step) {
     const end = Math.min(start + step - 1, toBlock);
-    const logs = await provider.getLogs({ ...filter, fromBlock: start, toBlock: end });
+    const logs = await rpcWithRetry(
+      () => provider.getLogs({ ...filter, fromBlock: start, toBlock: end }),
+      `logs ${start}-${end}`
+    );
     out.push(...logs);
     setStatus(`Sync ${Math.round(((end - fromBlock) / Math.max(1, toBlock - fromBlock)) * 100)}%`, "warn");
+    await sleep(120);
   }
   return out;
 }
@@ -126,19 +158,20 @@ async function fetchOnchain(wallet, days) {
   const betBearTopic = iface.getEvent("BetBear").topicHash;
   const claimTopic = iface.getEvent("Claim").topicHash;
 
-  const [bullLogs, bearLogs, claimLogs, bnbUsd] = await Promise.all([
-    getLogsChunked(provider, { address: CONFIG.predictionContract, topics: [betBullTopic, senderTopic] }, fromBlock, latest),
-    getLogsChunked(provider, { address: CONFIG.predictionContract, topics: [betBearTopic, senderTopic] }, fromBlock, latest),
-    getLogsChunked(provider, { address: CONFIG.predictionContract, topics: [claimTopic, senderTopic] }, fromBlock, latest),
-    fetchBnbUsd()
-  ]);
+  const bnbUsdPromise = fetchBnbUsd();
+  const bullLogs = await getLogsChunked(provider, { address: CONFIG.predictionContract, topics: [betBullTopic, senderTopic] }, fromBlock, latest);
+  await sleep(350);
+  const bearLogs = await getLogsChunked(provider, { address: CONFIG.predictionContract, topics: [betBearTopic, senderTopic] }, fromBlock, latest);
+  await sleep(350);
+  const claimLogs = await getLogsChunked(provider, { address: CONFIG.predictionContract, topics: [claimTopic, senderTopic] }, fromBlock, latest);
+  const bnbUsd = await bnbUsdPromise;
 
   const claimsByEpoch = new Map();
   for (const log of claimLogs) {
     const parsed = iface.parseLog(log);
     const epoch = parsed.args.epoch.toString();
     const amountBnb = bnb(parsed.args.amount);
-    const receipt = await provider.getTransactionReceipt(log.transactionHash).catch(() => null);
+    const receipt = await rpcWithRetry(() => provider.getTransactionReceipt(log.transactionHash), "claim receipt", 2).catch(() => null);
     const gasBnb = receiptGasBnb(receipt);
     claimsByEpoch.set(epoch, {
       txHash: log.transactionHash,
@@ -155,7 +188,7 @@ async function fetchOnchain(wallet, days) {
   const blockCache = new Map();
   async function blockDate(blockNumber) {
     if (!blockCache.has(blockNumber)) {
-      blockCache.set(blockNumber, await provider.getBlock(blockNumber));
+      blockCache.set(blockNumber, await rpcWithRetry(() => provider.getBlock(blockNumber), "block", 2));
     }
     return new Date(Number(blockCache.get(blockNumber).timestamp) * 1000);
   }
@@ -163,7 +196,7 @@ async function fetchOnchain(wallet, days) {
   const roundCache = new Map();
   async function roundInfo(epoch) {
     if (!roundCache.has(epoch)) {
-      roundCache.set(epoch, await contract.rounds(epoch).catch(() => null));
+      roundCache.set(epoch, await rpcWithRetry(() => contract.rounds(epoch), "round", 2).catch(() => null));
     }
     return roundCache.get(epoch);
   }
@@ -174,7 +207,7 @@ async function fetchOnchain(wallet, days) {
     const epoch = parsed.args.epoch.toString();
     const amountBnb = bnb(parsed.args.amount);
     const date = await blockDate(item.log.blockNumber);
-    const receipt = await provider.getTransactionReceipt(item.log.transactionHash).catch(() => null);
+    const receipt = await rpcWithRetry(() => provider.getTransactionReceipt(item.log.transactionHash), "bet receipt", 2).catch(() => null);
     const betGasBnb = receiptGasBnb(receipt);
     const round = await roundInfo(epoch);
     let resultDirection = "OPEN";

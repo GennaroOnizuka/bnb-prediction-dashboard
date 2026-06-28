@@ -10,8 +10,9 @@ window.DASHBOARD_CONFIG = {
     "https://bsc-dataseed1.ninicoin.io"
   ],
   blocksPerDay: 28800,
-  defaultDays: 7,
-  maxChunkBlocks: 4500,
+  defaultDays: 1,
+  maxChunkBlocks: 900,
+  rpcRetryMs: 900,
   baseBetBnb: 0.001,
   martingaleMultiplier: 2.5,
   martingaleMaxLosses: 5
