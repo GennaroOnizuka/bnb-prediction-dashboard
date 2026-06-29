@@ -57,7 +57,7 @@ function renderKpis(snapshot) {
   const netBnb = Number(summary.netBnb || 0);
   const netUsd = Number.isFinite(Number(summary.netUsd)) ? Number(summary.netUsd) : netBnb * bnbUsd;
 
-  $("netPnl").textContent = bnbUsd ? `${fmtUsd(netUsd)} / ${fmtBnb(netBnb)}` : fmtBnb(netBnb);
+  $("netPnl").textContent = bnbUsd ? fmtUsd(netUsd) : "--";
   $("netPnl").className = pnlClass(netBnb);
   $("winRate").textContent = `${fmtPct(Number(summary.winRate || 0))}`;
   $("closedTrades").textContent = String(summary.closedCount || 0);
@@ -142,6 +142,7 @@ function renderTrades(snapshot) {
       <div class="trade-main">
         <div class="trade-title">
           <strong>Epoch ${row.epoch || "--"}</strong>
+          <span class="wallet-badge">${row.module || "Wallet"}</span>
           <span class="trade-result ${statusClass}">${status}</span>
         </div>
         <div class="trade-meta">${tradeDate(row.date_ms)} · ${fmtBnb(Number(row.amountBnb || 0), 6)}</div>
