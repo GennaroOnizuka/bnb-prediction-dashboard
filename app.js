@@ -33,6 +33,11 @@ function pnlClass(value) {
   return "neutral";
 }
 
+function shortWallet(value) {
+  if (!value) return "wallet n/d";
+  return `${value.slice(0, 6)}...${value.slice(-4)}`;
+}
+
 function tradeDate(ms) {
   if (!ms) return "--";
   return new Date(ms).toLocaleString("it-IT", {
@@ -66,6 +71,25 @@ function renderKpis(snapshot) {
     ? `Volume ${fmtUsd(Number(summary.volumeUsd || 0)).replace("+", "")}`
     : `Volume ${fmtBnb(Number(summary.volumeBnb || 0))}`;
   $("lossStreak").textContent = `Max loss streak ${summary.maxLossStreak || 0}`;
+}
+
+function renderWallets(snapshot) {
+  const modules = snapshot.modules || [];
+  const bnbUsd = Number(snapshot.bnbUsd || 0);
+
+  for (let i = 0; i < 2; i += 1) {
+    const module = modules[i] || {};
+    const summary = module.summary || {};
+    const netBnb = Number(summary.netBnb || 0);
+    const netUsd = Number.isFinite(Number(summary.netUsd)) ? Number(summary.netUsd) : netBnb * bnbUsd;
+    const pnl = $(`wallet${i + 1}Pnl`);
+    const meta = $(`wallet${i + 1}Meta`);
+
+    if (!pnl || !meta) continue;
+    pnl.textContent = bnbUsd ? fmtUsd(netUsd) : "--";
+    pnl.className = pnlClass(netBnb);
+    meta.textContent = `${module.name || `Wallet ${i + 1}`} · ${shortWallet(module.wallet || "")} · ${summary.closedCount || 0} chiusi · ${summary.open || 0} open`;
+  }
 }
 
 function renderChart(snapshot) {
@@ -167,6 +191,7 @@ async function refresh() {
     const snapshot = await fetchSnapshot();
     renderUpdatedAt(snapshot);
     renderKpis(snapshot);
+    renderWallets(snapshot);
     renderChart(snapshot);
     renderTrades(snapshot);
   } catch (error) {

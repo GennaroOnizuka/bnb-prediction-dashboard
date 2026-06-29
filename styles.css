@@ -119,6 +119,42 @@ h1 {
   font-size: 30px;
 }
 
+.wallet-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.wallet-card {
+  min-height: 86px;
+  padding: 13px 14px;
+  background: rgba(12, 24, 21, 0.92);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+
+.wallet-card span {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.wallet-card strong {
+  display: block;
+  margin-top: 8px;
+  font-size: 22px;
+  line-height: 1;
+}
+
+.wallet-card p {
+  margin: 7px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
 .positive {
   color: var(--green);
 }
@@ -275,6 +311,10 @@ a {
 
   .kpi.primary {
     grid-column: 1 / -1;
+  }
+
+  .wallet-grid {
+    grid-template-columns: 1fr;
   }
 
   .panel-head {
