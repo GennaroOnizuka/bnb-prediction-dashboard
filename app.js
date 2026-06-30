@@ -76,19 +76,24 @@ function renderKpis(snapshot) {
 function renderWallets(snapshot) {
   const modules = snapshot.modules || [];
   const bnbUsd = Number(snapshot.bnbUsd || 0);
+  const grid = $("walletGrid");
 
-  for (let i = 0; i < 2; i += 1) {
-    const module = modules[i] || {};
+  if (!grid) return;
+  grid.innerHTML = "";
+
+  for (let i = 0; i < Math.max(1, modules.length); i += 1) {
+    const module = modules[i] || { name: "Wallet 1" };
     const summary = module.summary || {};
     const netBnb = Number(summary.netBnb || 0);
     const netUsd = Number.isFinite(Number(summary.netUsd)) ? Number(summary.netUsd) : netBnb * bnbUsd;
-    const pnl = $(`wallet${i + 1}Pnl`);
-    const meta = $(`wallet${i + 1}Meta`);
-
-    if (!pnl || !meta) continue;
-    pnl.textContent = bnbUsd ? fmtUsd(netUsd) : "--";
-    pnl.className = pnlClass(netBnb);
-    meta.textContent = `${module.name || `Wallet ${i + 1}`} · ${shortWallet(module.wallet || "")} · ${summary.closedCount || 0} chiusi · ${summary.open || 0} open`;
+    const card = document.createElement("article");
+    card.className = "wallet-card";
+    card.innerHTML = `
+      <span>${module.name || `Wallet ${i + 1}`}</span>
+      <strong class="${pnlClass(netBnb)}">${bnbUsd ? fmtUsd(netUsd) : "--"}</strong>
+      <p>${shortWallet(module.wallet || "")} · ${summary.closedCount || 0} chiusi · ${summary.open || 0} open</p>
+    `;
+    grid.appendChild(card);
   }
 }
 
@@ -180,9 +185,10 @@ function renderTrades(snapshot) {
 function renderUpdatedAt(snapshot) {
   const generated = snapshot.generated_ms ? new Date(snapshot.generated_ms) : null;
   const bnbUsd = snapshot.bnbUsd ? `$${Number(snapshot.bnbUsd).toFixed(2)}` : "BNB n/d";
+  const reset = snapshot.reset_ms ? ` · Reset ${new Date(snapshot.reset_ms).toLocaleString("it-IT")}` : "";
   $("updatedAt").textContent = generated
-    ? `Aggiornato ${generated.toLocaleString("it-IT")} · BNB ${bnbUsd}`
-    : `Aggiornamento non disponibile · BNB ${bnbUsd}`;
+    ? `Aggiornato ${generated.toLocaleString("it-IT")} · BNB ${bnbUsd}${reset}`
+    : `Aggiornamento non disponibile · BNB ${bnbUsd}${reset}`;
 }
 
 async function refresh() {
